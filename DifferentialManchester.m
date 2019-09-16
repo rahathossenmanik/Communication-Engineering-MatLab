@@ -1,42 +1,38 @@
+clear all;
+close all;
 clc;
-clear;
 
-data = input('Bits: ');
-k=1;
-t=0;
-Amplitude=1;
-samplesize = 100000;
+bits = input('prompt');
 bitrate = 1;
-for j=1:length(data)
-        if data(j)==1
-            for i=0:1/samplesize:(bitrate/2) 
-                 result(k)=Amplitude;
-                 time(k)=t;
-            
-                 k=k+1;
-                 t=t+1;
-             end;
-             for l=i:1/samplesize:bitrate
-                 result(k)=-Amplitude;
-                 time(k)=t;
-                 k=k+1;
-                 t=t+1;
-             end;
-            
-        else
-             for i=0:1/samplesize:(bitrate/2) 
-                 result(k)=-Amplitude;
-                 time(k)=t;
-                 k=k+1;
-                 t=t+1;
-             end;
-             for l=i:1/samplesize:bitrate
-                 result(k)=Amplitude;
-                 time(k)=t;
-                 k=k+1;
-                 t=t+1;
-             end;
-         end;
- end;
- plot(time,result,'LineWidth',3);
- title('Differential Manchester');
+n = 1000;
+T = length(bits)/bitrate;
+N = n*length(bits);
+dt = T/N;
+t = 0:dt:T;
+x = zeros(1,length(t));
+lastbit = 1;
+for i=1:length(bits)
+  if bits(i)==0
+    x((i-1)*n+1:(i-1)*n+n/2) = -lastbit;
+    x((i-1)*n+n/2:i*n) = lastbit;
+  else
+    x((i-1)*n+1:(i-1)*n+n/2) = lastbit;
+    x((i-1)*n+n/2:i*n) = -lastbit;
+    lastbit = -lastbit;
+  endif
+endfor
+plot(t, x, 'Linewidth', 3);
+counter = 0;
+lastbit = 1;
+for i = 1:length(t)
+  if t(i)>counter
+    counter = counter + 1;
+    if x(i)==lastbit
+      result(counter) = 1;
+      lastbit = -lastbit;
+    else result(counter) = 0;
+    endif
+  endif
+endfor
+disp('Differential Manchester Decoding:');
+disp(result);
